@@ -1,30 +1,55 @@
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod-redirect-0.herokuapp.com/)
 
-# Magie! (chapitre 11.3)
+# ENCORE PLUS DE MAGIE! (chapitre 11.4)
 
 <!-- Avant de commencer. Consulter les instructions à suivre dans [instructions.md](instructions.md) -->
 
-Nous allons étendre le jeu que nous avons fait au chapitre 11.1 en ajoutant une classe de magicien.
+Nous allons étendre le jeu que nous avons fait au chapitre 11.3 en réarrangeant les classes pour rendre le tout plus modulaire à l'aide de polymorphisme.
 
-## Sort magique
-### `magician.Spell`
+## Avant tout, un mot sur les classes abstraites, l'héritage multiple et le problème du losange
 
-On veut une classe qui représente un sort magique. Un sort est utilisable comme une arme, et a donc les même propriétés que celle-ci (donc un nom, un niveau de puissance et un niveau minimal) en plus d'un coût d'utilisation en *MP* (points d'énergie magique). 
+Comment règle-t-on le problème suivant?
 
-## Magiciens
-### `magician.Magician`
+<img src="doc/assets/diamond_problem.png" width="600">
 
-Dans notre jeu, un magicien est un personnage qui peut utiliser de la magie. Un magicien peut faire tout ce qu'un personnage régulier (`Character`) peut faire, comme utiliser une arme physique, en plus d'utiliser un sort de combat qui consomme des points d'énergie magique (des *MP*).
+Références :
 
-Un magicien a les attributs suivants, en plus de ceux de `Character` :
+[Python Course](https://www.python-course.eu/python3_multiple_inheritance.php#The-Diamond-Problem-or-the-,,deadly-diamond-of-death'')<br>
+[Blog de Raymond Hettinger](https://rhettinger.wordpress.com/2011/05/26/super-considered-super/)
 
-`Magician.max_mp` : MP maximum. <br>
-`Magician.magic_attack` : Le niveau d'attaque magique du personnage. <br>
-`Magician.using_magic` : Détermine si le magicien tente d'utiliser sa magie dans un combat. <br>
-`Magician.mp` : Les MP restants. <br>
-`Magician.spell` : Le sort utilisé par le magicien. <br>
+## Refonte des classes de notre jeu
 
-On a aussi la méthode `compute_damage()` qui calcule les dégâts infligés à un autre personnage (en paramètre). Si le personnage utilise son arme physique, la formule est exactement la même que pour les personnages réguliers :
+## Diagramme des classes
+
+<img src="doc/assets/game_classes.png">
+
+### Classe de base `character.Character`
+
+On va définir `Character` comme étant une classe abstraite qui possède plusieurs attributs et dont les enfants *doivent* réimplémenter la méthode virtuelle `compute_damage()`. C'est donc une classe qui ne peut pas être utilisée directement. Cette classe ne contient pas les éléments liés aux armes ou aux sorts.
+
+On a la propriété `last_used_move` qui indique la dernière attaque utilisée par `compute_damage()`, et qui est un `OffensiveMove` (classe de base pour toutes les attaques, armes ou autres). Les classes dérivées peuvent changer le comportement de cette propriété.
+
+On a aussi `take_damage()` qui définit comment un personnage prend du dommage. Les classes dérivées peuvent changer le comportement de cette méthode, mais n'y sont pas obligées.
+
+La classe abstraite `OffensiveMove` a un nom et une méthode abstraite `can_be_used_by()` qui dit si un personnage passé en paramètre peut se servir de l'attaque.
+
+## Utilisateurs d'armes et de magies
+
+### `Weapon` et `WeaponUser`
+
+On veut une classe qui représente une arme (puissance et niveau minimal) et une classe de personnage qui utilise des armes physiques en combat. Même logique que la dernière fois pour l'affectation
+
+### `Spell` et `Spellcaster`
+
+On veut une classe qui représente un sort (puissance, niveau minimal et coût en MP) et une classe de personnage qui utilise des sorts en consommant des MP.
+
+### `Magician`
+
+Dans notre jeu, un magicien est un personnage qui peut utiliser de la magie ou des armes. On a donc tout ce qui est dans `Spellcaster` et dans `WeaponUser`. La seule mécanique qui s'ajoute par-dessus est le choix d'utiliser de la magie ou une arme. On utilise la même logique pour le choix que dans le chapitre 11.3.
+
+### Formules
+
+On se rappelle des formules pour calculer le dommage physique (utilisée par `WeaponUser`) :
 
 <img src="doc/assets/dmg_eq.png" width="600">
 
@@ -32,49 +57,10 @@ Où *a* est l'attaquant et *d* est le défendeur. <br>
 *crit* est 2 environ 1/16 (6.25%) du temps, 1 sinon <br>
 *random* est un nombre aléatoire entre 85% et 100%
 
-Si le personnage utilise sa magie, le calcul est différent. La méthode `Magician.will_use_spell()` indique si le magicien utilise sa magie ou pas. On utilise exactement la même formule (donnée par `Character.compute_damage_output()`), mais en lui passant des valeurs différentes :
+Si le personnage utilise sa magie (`Spellcaster`), la formule est :
 
 <img src="doc/assets/dmg_eq_mag.png" width="600">
 
 Où *a* est l'attaquant et *d* est le défendeur. <br>
 *crit* est 2 environ 1/8 (12.5%) du temps, 1 sinon <br>
 *random* est un nombre aléatoire entre 85% et 100%
-
-On voit que le facteur de niveau est en fait le niveau du personnage + son attaque magique. On remarque aussi que le ratio attaque/défense est remplacé par 1. En effet, on suppose qu'il n'y a pas de défense contre la magie dans notre jeu. On passe donc `level + magic_attack` comme niveau et 1 comme attaque et défense à la formule de base.
-
-## Déroulement d'un combat
-
-### `game.deal_damage()` et `game.run_battle()`
-
-Exemple :
-```python
-	c1 = Character("Äpik", 500, 150, 70, 70)
-	c2 = Magician("Damn! That magic dude", 450, 100, 50, 150, 50, 65)
-
-	c1.weapon = Weapon("BFG", 100, 69)
-	c2.spell = Spell("Big Chungus Power", 100, 35, 50)
-	c2.weapon = Weapon("Slingshot", 80, 20)
-	c2.using_magic = True
-
-	turns = run_battle(c2, c1)
-	print(f"The battle ended in {turns} turns.")
-```
-
-Sortie :
-```
-Damn! That magic dude would like to battle.
-Äpik accepted!
-  Damn! That magic dude used Big Chungus Power
-    Critical hit!
-    Äpik took 306 dmg
-  Äpik used BFG
-    Damn! That magic dude took 163 dmg
-  Damn! That magic dude used Big Chungus Power
-    Äpik took 166 dmg
-  Äpik used BFG
-    Damn! That magic dude took 181 dmg
-  Damn! That magic dude used Slingshot
-    Äpik took 29 dmg
-  Äpik is sleeping with the fishes.
-The battle ended in 5 turns.
-```

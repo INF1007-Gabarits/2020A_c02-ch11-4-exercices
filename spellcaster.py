@@ -40,8 +40,8 @@ class Spellcaster(Character):
 
 	def __init__(self, max_mp, magic_attack, **kwargs):
 		super().__init__(**kwargs)
-		self.magic_attack = magic_attack
 		self.max_mp = max_mp
+		self.magic_attack = magic_attack
 		self.mp = max_mp
 		self.spell = None
 
