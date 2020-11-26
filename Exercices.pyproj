@@ -30,8 +30,17 @@
     <Compile Include="magician.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="spellcaster.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="test_exercice.py" />
     <Compile Include="utils.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="warrior.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="weapon_user.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="_exercice_version_prof.py" />

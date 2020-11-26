@@ -1,5 +1,5 @@
 """
-Chapitre 11.3
+Chapitre 11.4
 
 Fonctions pour simuler un combat.
 """
@@ -13,13 +13,12 @@ from magician import *
 
 
 def deal_damage(attacker, defender):
-	# TODO: Obtenir l'arme utilisée.
-	#       Si l'attaquant est un magicien et que `Magician.will_use_spell()` donne vrai, il utilise sa magie.
-	#       Sinon il utilise son arme physique.
-	weapon_used = None
 	damage, crit = attacker.compute_damage(defender)
-	defender.hp -= damage
-	print(f"  {attacker.name} used {weapon_used.name}")
+	# TODO: Obtenir l'arme utilisée par l'attaquant.
+	#       Si aucune arme n'a été utilisée (last_move_used est None), on affiche "nothing"
+	weapon_used = attacker.last_move_used.name if attacker.last_move_used is not None else "nothing"
+	defender.take_damage(damage)
+	print(f"  {attacker.name} used {weapon_used}")
 	if crit:
 		print("    Critical hit!")
 	print(f"    {defender.name} took {damage} dmg")

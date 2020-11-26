@@ -1,75 +1,51 @@
 """
-Chapitre 11.3
+Chapitre 11.4
 
 Classes pour représenter un personnage.
 """
 
 
 import random
+from abc import *
 
 import utils
 
 
-class Weapon:
-	"""
-	Une arme dans le jeu.
+def compute_damage_output(level, power, attack, defense, crit_chance, random_range):
+	level_factor = (2 * level) / 5 + 2
+	weapon_factor = power
+	atk_def_factor = attack / defense
+	critical = random.random() <= crit_chance
+	modifier = (2 if critical else 1) * random.uniform(*random_range)
+	damage = ((level_factor * weapon_factor * atk_def_factor) / 50 + 2) * modifier
+	return int(round(damage)), critical
 
-	:param name: Le nom de l'arme
-	:param power: Le niveau d'attaque
-	:param min_level: Le niveau minimal pour l'utiliser
-	"""
 
-	UNARMED_POWER = 20
-
-	def __init__(self, name, power, min_level):
+class OffensiveMove(ABC):
+	def __init__(self, name):
 		self.__name = name
-		self.power = power
-		self.min_level = min_level
 
 	@property
 	def name(self):
 		return self.__name
 
-	@classmethod
-	def make_unarmed(cls):
-		return cls("Unarmed", cls.UNARMED_POWER, 1)
+	@abstractmethod
+	def can_be_used_by(self, character):
+		raise NotImplementedError()
 
 
-class Character:
-	"""
-	Un personnage dans le jeu
-
-	:param name: Le nom du personnage
-	:param max_hp: HP maximum
-	:param attack: Le niveau d'attaque du personnage
-	:param defense: Le niveau de défense du personnage
-	:param level: Le niveau d'expérience du personnage
-	"""
-
-	def __init__(self, name, max_hp, attack, defense, level):
+class Character(ABC):
+	def __init__(self, name, level, max_hp, attack, defense):
 		self.__name = name
+		self.level = level
 		self.max_hp = max_hp
 		self.attack = attack
 		self.defense = defense
-		self.level = level
-		self.weapon = None
 		self.hp = max_hp
 	
 	@property
 	def name(self):
 		return self.__name
-
-	@property
-	def weapon(self):
-		return self.__weapon
-
-	@weapon.setter
-	def weapon(self, val):
-		if val is None:
-			val = Weapon.make_unarmed()
-		if val.min_level > self.level:
-			raise ValueError(Weapon)
-		self.__weapon = val
 
 	@property
 	def hp(self):
@@ -79,23 +55,18 @@ class Character:
 	def hp(self, val):
 		self.__hp = utils.clamp(val, 0, self.max_hp)
 
-	def compute_damage(self, other):
-		return Character.compute_damage_output(
-			self.level,
-			self.weapon.power,
-			self.attack,
-			other.defense,
-			1/16,
-			(0.85, 1.00)
-		)
+	@property
+	def last_move_used(self) -> OffensiveMove:
+		return self.__last_move_used
 
-	@staticmethod
-	def compute_damage_output(level, power, attack, defense, crit_chance, random_range):
-		level_factor = (2 * level) / 5 + 2
-		weapon_factor = power
-		atk_def_factor = attack / defense
-		critical = random.random() <= crit_chance
-		modifier = (2 if critical else 1) * random.uniform(*random_range)
-		damage = ((level_factor * weapon_factor * atk_def_factor) / 50 + 2) * modifier
-		return int(round(damage)), critical
+	@last_move_used.setter
+	def last_move_used(self, val: OffensiveMove):
+		self.__last_move_used = val
+
+	@abstractmethod
+	def compute_damage(self, other):
+		raise NotImplementedError()
+
+	def take_damage(self, dmg):
+		self.hp -= dmg
 
