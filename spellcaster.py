@@ -29,13 +29,11 @@ class Spell(Weapon):
 
 class Spellcaster(Character):
 	"""
-	Un utilisateur de magie dans le jeu. Un magicien peut utiliser des sorts, mais peut aussi utiliser des armes physiques. Sa capacité à utiliser des sorts dépend 
+	Un utilisateur de magie dans le jeu.
 
 	:param max_mp: MP maximum
 	:param magic_attack: Le niveau d'attaque magique du personnage
 	:param kwargs: Les autres paramètres à passer au parent
-
-	:ivar using_magic: Détermine si le magicien tente d'utiliser sa magie dans un combat.
 	"""
 
 	def __init__(self, max_mp, magic_attack, **kwargs):
