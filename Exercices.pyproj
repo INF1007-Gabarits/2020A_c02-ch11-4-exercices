@@ -50,6 +50,9 @@
     <Compile Include="_magician_version_prof.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="_warrior_version_prof.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
